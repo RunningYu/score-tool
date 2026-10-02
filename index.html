@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#6366f1" />
+<title>小工具箱 · H5</title>
+<style>
+  :root{
+    --bg:#f5f6fb; --card:#ffffff; --primary:#6366f1; --primary-d:#4f46e5;
+    --text:#1f2330; --sub:#6b7280; --line:#eceef3; --ok:#10b981; --danger:#ef4444;
+    --radius:16px; --shadow:0 6px 20px rgba(40,40,80,.08);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+    padding:0 0 calc(86px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    position:sticky; top:0; z-index:10; background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
+  }
+  header h1{margin:0; font-size:19px; font-weight:700; letter-spacing:.5px;}
+  header p{margin:2px 0 0; font-size:12px; opacity:.85;}
+  .wrap{padding:14px 14px 0;}
+  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+  .tile{
+    background:var(--card); border-radius:var(--radius); padding:16px 14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:8px; cursor:pointer; transition:transform .12s ease;
+    border:1px solid var(--line);
+  }
+  .tile:active{transform:scale(.97);}
+  .tile .ico{font-size:26px;}
+  .tile .t{font-weight:600; font-size:15px;}
+  .tile .d{font-size:11px; color:var(--sub);}
+  /* panels */
+  .panel{display:none; padding:14px 14px 0;}
+  .panel.active{display:block; animation:fade .2s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+  .card{background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); border:1px solid var(--line); margin-bottom:12px;}
+  .card h2{margin:0 0 12px; font-size:15px; display:flex; align-items:center; gap:8px;}
+  label{font-size:13px; color:var(--sub); display:block; margin:10px 0 6px;}
+  input,select,textarea{
+    width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px;
+    font-size:15px; background:#fbfbfe; color:var(--text); outline:none; font-family:inherit;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--primary); background:#fff;}
+  textarea{resize:vertical; min-height:80px;}
+  .row{display:flex; gap:8px; flex-wrap:wrap;}
+  .row > *{flex:1; min-width:0;}
+  button{
+    border:none; border-radius:12px; padding:12px 14px; font-size:15px; font-weight:600;
+    background:var(--primary); color:#fff; cursor:pointer; transition:filter .12s ease; font-family:inherit;
+  }
+  button:active{filter:brightness(.92);}
+  button.ghost{background:#eef0fb; color:var(--primary-d);}
+  button.full{width:100%;}
+  .btn-sm{padding:9px 12px; font-size:13px;}
+  .res{margin-top:10px; padding:12px; background:#f3f4ff; border-radius:12px; font-size:14px; word-break:break-all; min-height:20px;}
+  .res b{color:var(--primary-d);}
+  .mv{display:none; position:fixed; inset:0; z-index:30; background:var(--bg); padding:0; overflow:auto;}
+  .mv.active{display:block;}
+  .mv-top{position:sticky; top:0; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff;
+    padding:calc(12px + env(safe-area-inset-top)) 16px 12px; display:flex; align-items:center; gap:10px;}
+  .mv-top .back{background:rgba(255,255,255,.2); border:none; border-radius:10px; width:36px; height:36px; font-size:20px; color:#fff; padding:0;}
+  .mv-top h2{margin:0; font-size:17px; font-weight:700;}
+  .mv-body{padding:14px;}
+  .seg{display:flex; background:#eef0fb; border-radius:12px; padding:4px; gap:4px; margin-bottom:12px;}
+  .seg button{flex:1; background:transparent; color:var(--sub); padding:9px; font-size:13px; border-radius:9px;}
+  .seg button.on{background:#fff; color:var(--primary-d); box-shadow:0 2px 6px rgba(0,0,0,.06);}
+  /* bottom nav */
+  nav{position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; background:#fff;
+    border-top:1px solid var(--line); padding:8px 6px calc(8px + env(safe-area-inset-bottom));}
+  nav a{flex:1; text-align:center; font-size:11px; color:var(--sub); text-decoration:none; display:flex; flex-direction:column; align-items:center; gap:3px;}
+  nav a .e{font-size:20px;}
+  nav a.on{color:var(--primary);}
+  /* calculator */
+  .calc{background:#1f2330; border-radius:14px; overflow:hidden;}
+  .calc .scr{color:#fff; text-align:right; padding:18px 16px 10px; font-size:30px; min-height:62px; word-break:break-all;}
+  .calc .keys{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:10px;}
+  .calc .keys button{padding:18px 0; font-size:20px; border-radius:12px; background:#2c3142; color:#fff;}
+  .calc .keys button.op{background:#6366f1;}
+  .calc .keys button.fn{background:#444b61; color:#cbd5e1;}
+  .calc .keys button.eq{background:#10b981;}
+  .qr-box{display:flex; justify-content:center; padding:10px;}
+  .qr-box img,.qr-box canvas{border-radius:10px; background:#fff; padding:8px;}
+  .note{font-size:12px; color:var(--sub); margin-top:8px;}
+  .pill{display:inline-block; background:#eef0fb; color:var(--primary-d); border-radius:999px; padding:3px 10px; font-size:12px; margin:3px 4px 0 0;}
+  .toast{position:fixed; left:50%; bottom:100px; transform:translateX(-50%); background:rgba(0,0,0,.82); color:#fff; padding:10px 18px; border-radius:999px; font-size:13px; z-index:50; opacity:0; transition:opacity .2s; pointer-events:none;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧰 小工具箱</h1>
+  <p>纯前端 · 离线可用 · 手机直接打开</p>
+</header>
+
+<!-- 首页 -->
+<section id="home" class="panel active">
+  <div class="wrap">
+    <div class="grid" id="tiles"></div>
+    <p class="note" style="text-align:center; margin-top:14px;">点击任意工具使用 · 可「添加到主屏幕」当 App 用</p>
+  </div>
+</section>
+
+<!-- 计算器 -->
+<div id="mv-calc" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>🧮 计算器</h2></div>
+  <div class="mv-body">
+    <div class="calc">
+      <div class="scr" id="calcScr">0</div>
+      <div class="keys">
+        <button class="fn" data-k="C">C</button>
+        <button class="fn" data-k="⌫">⌫</button>
+        <button class="fn" data-k="%">%</button>
+        <button class="op" data-k="/">÷</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button class="op" data-k="*">×</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button class="op" data-k="-">−</button>
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button class="op" data-k="+">+</button>
+        <button data-k="0">0</button><button data-k=".">.</button>
+        <button data-k="(">(</button><button class="eq" data-k="=">=</button>
+      </div>
+    </div>
+    <p class="note">支持 + − × ÷ % 及括号，如 (12+8)*3</p>
+  </div>
+</div>
+
+<!-- 单位换算 -->
+<div id="mv-unit" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>🔁 单位换算</h2></div>
+  <div class="mv-body">
+    <div class="card">
+      <div class="seg" id="unitCats"></div>
+      <label>从</label>
+      <div class="row">
+        <input id="unitVal" type="number" value="1" inputmode="decimal" />
+        <select id="unitFrom"></select>
+      </div>
+      <label>到</label>
+      <div class="row">
+        <input id="unitOut" readonly />
+        <select id="unitTo"></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 时间戳 -->
+<div id="mv-time" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>⏱ 时间戳转换</h2></div>
+  <div class="mv-body">
+    <div class="card">
+      <h2>当前时间</h2>
+      <div class="res" id="nowUnix">—</div>
+      <div class="res" id="nowDate">—</div>
+      <button class="ghost full btn-sm" id="copyNow">复制秒级时间戳</button>
+    </div>
+    <div class="card">
+      <h2>时间戳 → 时间</h2>
+      <label>输入时间戳（秒或毫秒）</label>
+      <input id="tsIn" inputmode="numeric" placeholder="如 1700000000" />
+      <div class="res" id="tsOut">—</div>
+    </div>
+    <div class="card">
+      <h2>时间 → 时间戳</h2>
+      <label>选择日期时间</label>
+      <input id="dateIn" type="datetime-local" />
+      <div class="res" id="dateOut">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- 颜色 -->
+<div id="mv-color" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>🎨 颜色转换</h2></div>
+  <div class="mv-body">
+    <div class="card" style="text-align:center;">
+      <input type="color" id="colorPick" value="#6366f1" style="width:90px;height:90px;border:none;background:none;padding:0;cursor:pointer;" />
+      <div class="res" id="colorHex">#6366F1</div>
+      <div class="res" id="colorRgb">rgb(99, 102, 241)</div>
+      <div class="res" id="colorHsl">hsl(239, 84%, 67%)</div>
+      <button class="ghost full btn-sm" id="copyHex">复制 HEX</button>
+    </div>
+  </div>
+</div>
+
+<!-- Base64 -->
+<div id="mv-b64" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>🔐 Base64 编解码</h2></div>
+  <div class="mv-body">
+    <div class="card">
+      <div class="seg">
+        <button class="on" data-mode="enc">编码</button>
+        <button data-mode="dec">解码</button>
+      </div>
+      <label id="b64Lab">输入文本</label>
+      <textarea id="b64In" placeholder="在此输入…"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button id="b64Run">转换</button>
+        <button class="ghost" id="b64Copy">复制结果</button>
+      </div>
+      <div class="res" id="b64Out">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- 文本统计 -->
+<div id="mv-text" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>📝 文本统计</h2></div>
+  <div class="mv-body">
+    <div class="card">
+      <textarea id="textIn" placeholder="粘贴或输入文本…"></textarea>
+      <div id="textStat" style="margin-top:12px;">
+        <span class="pill">字符(含空格)：0</span>
+        <span class="pill">字符(去空格)：0</span>
+        <span class="pill">词数：0</span>
+        <span class="pill">行数：0</span>
+        <span class="pill">字节(UTF-8)：0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 随机/密码 -->
+<div id="mv-rand" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>🎲 随机 & 密码</h2></div>
+  <div class="mv-body">
+    <div class="card">
+      <h2>密码生成</h2>
+      <label>长度：<span id="pwLenV">12</span></label>
+      <input id="pwLen" type="range" min="4" max="32" value="12" />
+      <div class="row" style="margin-top:6px;">
+        <label style="margin:0;"><input type="checkbox" id="pwUp" checked style="width:auto;margin-right:6px;" />大写</label>
+        <label style="margin:0;"><input type="checkbox" id="pwLo" checked style="width:auto;margin-right:6px;" />小写</label>
+        <label style="margin:0;"><input type="checkbox" id="pwNum" checked style="width:auto;margin-right:6px;" />数字</label>
+        <label style="margin:0;"><input type="checkbox" id="pwSym" checked style="width:auto;margin-right:6px;" />符号</label>
+      </div>
+      <div class="res" id="pwOut" style="font-family:monospace;font-size:16px;">—</div>
+      <button class="ghost full btn-sm" id="pwCopy">复制密码</button>
+    </div>
+    <div class="card">
+      <h2>随机整数</h2>
+      <div class="row">
+        <input id="rMin" type="number" value="1" placeholder="最小" />
+        <input id="rMax" type="number" value="100" placeholder="最大" />
+      </div>
+      <div class="res" id="rOut">—</div>
+      <button class="full" id="rGen">生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 计时器 -->
+<div id="mv-timer" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>⏲ 计时 / 秒表</h2></div>
+  <div class="mv-body">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:46px;font-weight:700;font-variant-numeric:tabular-nums;" id="swTime">00:00.00</div>
+      <div class="row" style="margin-top:14px;">
+        <button id="swStart">开始</button>
+        <button class="ghost" id="swReset">重置</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 二维码 -->
+<div id="mv-qr" class="mv">
+  <div class="mv-top"><button class="back" data-close>‹</button><h2>📱 二维码生成</h2></div>
+  <div class="mv-body">
+    <div class="card">
+      <label>输入文本或网址</label>
+      <textarea id="qrIn" placeholder="https://github.com"></textarea>
+      <button class="full" id="qrGen">生成二维码</button>
+      <div class="qr-box" id="qrBox" style="min-height:40px;"></div>
+      <p class="note">生成依赖外部库（jsDelivr），离线时可能不可用。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 底部导航 -->
+<nav id="nav">
+  <a class="on" data-go="home"><span class="e">🏠</span>首页</a>
+  <a data-go="calc"><span class="e">🧮</span>计算</a>
+  <a data-go="unit"><span class="e">🔁</span>换算</a>
+  <a data-go="qr"><span class="e">📱</span>二维码</a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s,r){return (r||document).querySelector(s);};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+
+  /* toast */
+  var tEl=$("#toast"),tT;
+  function toast(m){tEl.textContent=m;tEl.classList.add("show");clearTimeout(tT);tT=setTimeout(function(){tEl.classList.remove("show");},1400);}
+  function copy(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast("已复制");},function(){fbCopy(t);});}else{fbCopy(t);}}
+  function fbCopy(t){var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("已复制");}catch(e){toast("复制失败");}document.body.removeChild(ta);}
+
+  /* 首页 tiles */
+  var tools=[
+    {id:"calc",ico:"🧮",t:"计算器",d:"日常运算"},
+    {id:"unit",ico:"🔁",t:"单位换算",d:"长度/重量/温度"},
+    {id:"time",ico:"⏱",t:"时间戳",d:"时间互转"},
+    {id:"color",ico:"🎨",t:"颜色转换",d:"HEX/RGB/HSL"},
+    {id:"b64",ico:"🔐",t:"Base64",d:"编解码"},
+    {id:"text",ico:"📝",t:"文本统计",d:"字数/字节"},
+    {id:"rand",ico:"🎲",t:"随机密码",d:"生成/抽签"},
+    {id:"timer",ico:"⏲",t:"秒表",d:"计时"},
+    {id:"qr",ico:"📱",t:"二维码",d:"生成"}
+  ];
+  var tiles=$("#tiles");
+  tools.forEach(function(t){var d=document.createElement("div");d.className="tile";d.innerHTML='<div class="ico">'+t.ico+'</div><div class="t">'+t.t+'</div><div class="d">'+t.d+'</div>';d.onclick=function(){openMv("mv-"+t.id);if(t.id==="time")tickNow();};tiles.appendChild(d);});
+
+  /* 导航 */
+  $$("#nav a").forEach(function(a){a.onclick=function(){var g=a.dataset.go;if(g==="home"){closeAllMv();$("#home").classList.add("active");setNav("home");}else{openMv("mv-"+g);if(g==="time")tickNow();}};});
+  function setNav(id){$$("#nav a").forEach(function(a){a.classList.toggle("on",a.dataset.go===id);});}
+
+  function openMv(id){$$(".mv").forEach(function(m){m.classList.remove("active");});$("#home").classList.remove("active");$(id).classList.add("active");window.scrollTo(0,0);var t=id.replace("mv-","");setNav(t);}
+  function closeAllMv(){$$(".mv").forEach(function(m){m.classList.remove("active");});$("#home").classList.add("active");setNav("home");}
+  $$("[data-close]").forEach(function(b){b.onclick=closeAllMv;});
+
+  /* ---------- 计算器 ---------- */
+  var calcExpr="0",calcScr=$("#calcScr");
+  function calcRender(){calcScr.textContent=calcExpr;}
+  $$(".calc .keys button").forEach(function(b){b.onclick=function(){
+    var k=b.dataset.k;
+    if(k==="C"){calcExpr="0";}
+    else if(k==="⌫"){calcExpr=calcExpr.length>1?calcExpr.slice(0,-1):"0";}
+    else if(k==="="){try{var e=calcExpr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");
+      if(!/^[0-9+\-*/().%\s]+$/.test(e))throw 0;
+      var r=Function('"use strict";return ('+e+')')();
+      if(!isFinite(r))throw 0; calcExpr=String(Math.round(r*1e10)/1e10);}catch(e){calcExpr="错误";}
+    }
+    else{if(calcExpr==="0"||calcExpr==="错误")calcExpr=k;else calcExpr+=k;}
+    calcRender();
+  };});
+  calcRender();
+
+  /* ---------- 单位换算 ---------- */
+  var units={
+    "长度":{m:1,km:1000,cm:0.01,mm:0.001,mi:1609.344,yd:0.9144,ft:0.3048,in:0.0254},
+    "重量":{kg:1,g:0.001,mg:1e-6,t:1000,lb:0.45359237,oz:0.0283495},
+    "温度":null,
+    "面积":{m2:1,km2:1e6,cm2:0.0001,ha:10000,ft2:0.092903,acre:4046.86},
+    "体积":{L:1,mL:0.001,m3:1000,gal:3.78541,cup:0.236588}
+  };
+  var cats=Object.keys(units),curCat=cats[0];
+  var uc=$("#unitCats");
+  cats.forEach(function(c,i){var b=document.createElement("button");b.textContent=c;if(i===0)b.className="on";b.onclick=function(){curCat=c;$$("#unitCats button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");fillUnits();};uc.appendChild(b);});
+  function fillUnits(){var keys=Object.keys(units[curCat]);var f=$("#unitFrom"),t=$("#unitTo");f.innerHTML="";t.innerHTML="";keys.forEach(function(k,i){var o1=document.createElement("option");o1.value=k;o1.textContent=k;f.appendChild(o1);var o2=document.createElement("option");o2.value=k;o2.textContent=k;t.appendChild(o2);});t.selectedIndex=keys.length>1?1:0;convUnit();}
+  function convUnit(){
+    var v=parseFloat($("#unitVal").value),c=curCat;
+    if(c==="温度"){var from=$("#unitFrom").value,to=$("#unitTo").value,inC;
+      if(from==="C")inC=v;else if(from==="F")inC=(v-32)*5/9;else inC=v-273.15;
+      var out; if(to==="C")out=inC;else if(to==="F")out=inC*9/5+32;else out=inC+273.15;
+      $("#unitOut").value=round(out);return;}
+    var f=units[c][$("#unitFrom").value],t=units[c][$("#unitTo").value];
+    $("#unitOut").value=round(v*f/t);
+  }
+  function round(n){return Math.round(n*1e6)/1e6;}
+  $("#unitVal").oninput=convUnit;$("#unitFrom").onchange=convUnit;$("#unitTo").onchange=convUnit;
+  fillUnits();
+
+  /* ---------- 时间戳 ---------- */
+  function tickNow(){var n=Date.now();$("#nowUnix").innerHTML="秒：<b>"+Math.floor(n/1000)+"</b>　毫秒：<b>"+n+"</b>";$("#nowDate").textContent=new Date(n).toLocaleString();}
+  setInterval(function(){if($("#mv-time").classList.contains("active"))tickNow();},1000);
+  $("#copyNow").onclick=function(){copy(String(Math.floor(Date.now()/1000)));};
+  $("#tsIn").oninput=function(){var v=$("#tsIn").value.trim();if(!v){$("#tsOut").textContent="—";return;}var n=parseInt(v,10);if(isNaN(n)){$("#tsOut").textContent="无效";return;}if(v.length<=10)n=n*1000;var d=new Date(n);$("#tsOut").innerHTML="本地：<b>"+d.toLocaleString()+"</b><br>UTC：<b>"+d.toUTCString()+"</b>";};
+  $("#dateIn").oninput=function(){var v=$("#dateIn").value;if(!v){$("#dateOut").textContent="—";return;}var t=new Date(v).getTime();$("#dateOut").innerHTML="秒：<b>"+Math.floor(t/1000)+"</b><br>毫秒：<b>"+t+"</b>";};
+  (function(){var d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());$("#dateIn").value=d.toISOString().slice(0,16);})();
+
+  /* ---------- 颜色 ---------- */
+  function hslToRgb(h,s,l){s/=100;l/=100;var c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r,g,b;if(h<60){r=c;g=x;b=0;}else if(h<120){r=x;g=c;b=0;}else if(h<180){r=0;g=c;b=x;}else if(h<240){r=0;g=x;b=c;}else if(h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;}return[Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];}
+  function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),h,s,l=(mx+mn)/2;if(mx===mn){h=s=0;}else{var d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);if(mx===r)h=(g-b)/d+(g<b?6:0);else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h/=6;}return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];}
+  function updColor(hex){hex=hex.replace("#","");if(hex.length===3)hex=hex.split("").map(function(c){return c+c;}).join("");var r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);if(isNaN(r)||isNaN(g)||isNaN(b))return;var hsl=rgbToHsl(r,g,b);$("#colorHex").textContent="#"+(hex).toUpperCase();$("#colorRgb").textContent="rgb("+r+", "+g+", "+b+")";$("#colorHsl").textContent="hsl("+hsl[0]+", "+hsl[1]+"%, "+hsl[2]+"%)";}
+  $("#colorPick").oninput=function(){updColor(this.value);};updColor("#6366f1");
+  $("#copyHex").onclick=function(){copy($("#colorHex").textContent);};
+
+  /* ---------- Base64 ---------- */
+  var b64Mode="enc";
+  $$("#mv-b64 .seg button").forEach(function(b){b.onclick=function(){b64Mode=b.dataset.mode;$$("#mv-b64 .seg button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");$("#b64Lab").textContent=b64Mode==="enc"?"输入文本":"输入 Base64";};});
+  function b64enc(s){return btoa(unescape(encodeURIComponent(s)));}
+  function b64dec(s){return decodeURIComponent(escape(atob(s)));}
+  $("#b64Run").onclick=function(){var v=$("#b64In").value;if(!v){$("#b64Out").textContent="—";return;}try{$("#b64Out").textContent=b64Mode==="enc"?b64enc(v):b64dec(v);}catch(e){$("#b64Out").textContent="解码失败：格式不正确";}};
+  $("#b64Copy").onclick=function(){var t=$("#b64Out").textContent;if(t&&t!=="—")copy(t);};
+
+  /* ---------- 文本统计 ---------- */
+  $("#textIn").oninput=function(){var t=this.value;var noSpace=t.replace(/\s/g,"");var words=(t.trim()?t.trim().split(/\s+/).length:0);var lines=t?t.split(/\n/).length:0;var bytes=new TextEncoder().encode(t).length;
+    var pills=$("#textStat").children;$("#textStat").innerHTML=
+      '<span class="pill">字符(含空格)：'+t.length+'</span>'+
+      '<span class="pill">字符(去空格)：'+noSpace.length+'</span>'+
+      '<span class="pill">词数：'+words+'</span>'+
+      '<span class="pill">行数：'+lines+'</span>'+
+      '<span class="pill">字节(UTF-8)：'+bytes+'</span>';
+  };
+
+  /* ---------- 随机/密码 ---------- */
+  var pwChars={up:"ABCDEFGHIJKLMNOPQRSTUVWXYZ",lo:"abcdefghijklmnopqrstuvwxyz",num:"0123456789",sym:"!@#$%^&*()-_=+[]{};:,.<>?"};
+  $("#pwLen").oninput=function(){$("#pwLenV").textContent=this.value;genPw();};
+  ["pwUp","pwLo","pwNum","pwSym"].forEach(function(id){$("#"+id).onchange=genPw;});
+  function genPw(){var len=+$("#pwLen").value,pool="";["pwUp","pwLo","pwNum","pwSym"].forEach(function(id){if($("#"+id).checked)pool+=pwChars[id.slice(2).toLowerCase()];});if(!pool){$("#pwOut").textContent="请至少选择一种字符";return;}var out="";for(var i=0;i<len;i++)out+=pool[Math.floor(Math.random()*pool.length)];$("#pwOut").textContent=out;}
+  genPw();
+  $("#pwCopy").onclick=function(){copy($("#pwOut").textContent);};
+  $("#rGen").onclick=function(){var a=+$("#rMin").value,b=+$("#rMax").value;if(a>b){var t=a;a=b;b=t;}$("#rOut").textContent=Math.floor(Math.random()*(b-a+1))+a;};
+
+  /* ---------- 秒表 ---------- */
+  var swT=0,swRun=false,swLast=0,swIv;
+  function swFmt(ms){var m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,cs=Math.floor(ms/10)%100;return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+"."+String(cs).padStart(2,"0");}
+  $("#swStart").onclick=function(){if(swRun){swRun=false;clearInterval(swIv);this.textContent="继续";}else{swRun=true;swLast=Date.now();this.textContent="暂停";swIv=setInterval(function(){$("#swTime").textContent=swFmt(swT+(Date.now()-swLast));},30);}};
+  $("#swReset").onclick=function(){swRun=false;clearInterval(swIv);swT=0;$("#swTime").textContent="00:00.00";$("#swStart").textContent="开始";};
+
+  /* ---------- 二维码 ---------- */
+  var qrLoaded=false;
+  function loadQr(cb){if(qrLoaded){cb();return;}var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";s.onload=function(){qrLoaded=true;cb();};s.onerror=function(){$("#qrBox").innerHTML='<span class="note">加载二维码库失败，请检查网络</span>';};document.head.appendChild(s);}
+  $("#qrGen").onclick=function(){var txt=$("#qrIn").value.trim();if(!txt){toast("请输入内容");return;}$("#qrBox").textContent="生成中…";loadQr(function(){try{var qr=qrcode(0,"M");qr.addData(txt);qr.make();$("#qrBox").innerHTML=qr.createImgTag(6,8);}catch(e){$("#qrBox").innerHTML='<span class="note">生成失败</span>';}});};
+
+})();
+</script>
+</body>
+</html>
