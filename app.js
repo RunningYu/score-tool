@@ -1,6 +1,6 @@
 // Score-Tool 前端（纯 JS，无框架）
 // ⚠️ 部署后把下面这行换成你的 Worker 地址（wrangler deploy 输出的 URL）
-const API_BASE = "https://scoretool-api.947219346.workers.dev";
+const API_BASE = "https://scoretool.pages.dev";  // Pages 同源也用绝对 URL，跨源也能跑
 
 const $ = id => document.getElementById(id);
 let token = localStorage.getItem("st_token") || "";
